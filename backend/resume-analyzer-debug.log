@@ -1,0 +1,39 @@
+UPLOAD RECEIVED 2026-05-26T08:01:53.615Z {"originalname":"Rahul_Kumar_Resume_v2.pdf","mimetype":"application/pdf","size":47194,"path":"C:\\Users\\RAHUL\\Documents\\mock-interview-ai\\backend\\uploads\\1779782513608-Rahul_Kumar_Resume_v2.pdf","fieldname":"resume"}
+ERROR 2026-05-26T08:01:53.619Z pdfParse is not a function TypeError: pdfParse is not a function
+    at analyzeResume (file:///C:/Users/RAHUL/Documents/mock-interview-ai/backend/controllers/resumeController.js:87:27)
+    at Layer.handleRequest (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\layer.js:152:17)
+    at next (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\route.js:157:13)
+    at done (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:69:7)
+    at indicateDone (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:73:68)
+    at C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:232:11
+    at WriteStream.<anonymous> (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\storage\disk.js:42:9)
+    at WriteStream.emit (node:events:521:24)
+    at finish (node:internal/streams/writable:953:10)
+    at node:internal/streams/writable:934:13
+CLEANUP 2026-05-26T08:01:53.656Z deleted C:\Users\RAHUL\Documents\mock-interview-ai\backend\uploads\1779782513608-Rahul_Kumar_Resume_v2.pdf
+UPLOAD RECEIVED 2026-05-26T08:04:25.404Z {"originalname":"Rahul_Kumar_Resume_v2.pdf","mimetype":"application/pdf","size":47194,"path":"C:\\Users\\RAHUL\\Documents\\mock-interview-ai\\backend\\uploads\\1779782665398-Rahul_Kumar_Resume_v2.pdf","fieldname":"resume"}
+ERROR 2026-05-26T08:04:25.405Z pdfParse is not a function TypeError: pdfParse is not a function
+    at analyzeResume (file:///C:/Users/RAHUL/Documents/mock-interview-ai/backend/controllers/resumeController.js:89:27)
+    at Layer.handleRequest (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\layer.js:152:17)
+    at next (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\route.js:157:13)
+    at done (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:69:7)
+    at indicateDone (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:73:68)
+    at C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:232:11
+    at WriteStream.<anonymous> (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\storage\disk.js:42:9)
+    at WriteStream.emit (node:events:521:24)
+    at finish (node:internal/streams/writable:953:10)
+    at node:internal/streams/writable:934:13
+CLEANUP 2026-05-26T08:04:25.411Z deleted C:\Users\RAHUL\Documents\mock-interview-ai\backend\uploads\1779782665398-Rahul_Kumar_Resume_v2.pdf
+UPLOAD RECEIVED 2026-05-26T08:08:28.788Z {"originalname":"Rahul_Kumar_Resume_v2.pdf","mimetype":"application/pdf","size":47194,"path":"C:\\Users\\RAHUL\\Documents\\mock-interview-ai\\backend\\uploads\\1779782908784-Rahul_Kumar_Resume_v2.pdf","fieldname":"resume"}
+ERROR 2026-05-26T08:08:28.789Z pdfParse is not a function TypeError: pdfParse is not a function
+    at analyzeResume (file:///C:/Users/RAHUL/Documents/mock-interview-ai/backend/controllers/resumeController.js:92:27)
+    at Layer.handleRequest (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\layer.js:152:17)
+    at next (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\router\lib\route.js:157:13)
+    at done (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:69:7)
+    at indicateDone (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:73:68)
+    at C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\lib\make-middleware.js:232:11
+    at WriteStream.<anonymous> (C:\Users\RAHUL\Documents\mock-interview-ai\backend\node_modules\multer\storage\disk.js:42:9)
+    at WriteStream.emit (node:events:521:24)
+    at finish (node:internal/streams/writable:953:10)
+    at node:internal/streams/writable:934:13
+CLEANUP 2026-05-26T08:08:28.794Z deleted C:\Users\RAHUL\Documents\mock-interview-ai\backend\uploads\1779782908784-Rahul_Kumar_Resume_v2.pdf

@@ -7,6 +7,11 @@ const interviewSchema = new mongoose.Schema(
     feedback: String,
     score: String,
     weakTopics: [String],
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   {
     timestamps: true,

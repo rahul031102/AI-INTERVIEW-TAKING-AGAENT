@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import Groq from 'groq-sdk';
 import Interview from './models/Interview.js';
 import resumeRoutes from './routes/resumeRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import authMiddleware from './middlewares/authMiddleware.js';
 
 dotenv.config();
 
@@ -23,7 +25,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/resume', resumeRoutes);
+app.use('/auth', authRoutes);
+app.use('/resume', authMiddleware, resumeRoutes);
 
 // Debug: list mounted resume routes
 try {
@@ -36,7 +39,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-app.get('/question', async (req, res) => {
+app.get('/question', authMiddleware, async (req, res) => {
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -62,7 +65,7 @@ app.get('/question', async (req, res) => {
   }
 });
 
-app.post('/evaluate', async (req, res) => {
+app.post('/evaluate', authMiddleware, async (req, res) => {
   try {
     const { question, answer } = req.body;
 
@@ -123,6 +126,7 @@ Keep response concise.
             .map((t) => t.trim())
             .filter(Boolean)
         : [],
+      userId: req.user.id,
     });
 
     res.json({
@@ -138,9 +142,9 @@ Keep response concise.
   }
 });
 
-app.get('/history', async (req, res) => {
+app.get('/history', authMiddleware, async (req, res) => {
   try {
-    const interviews = await Interview.find()
+    const interviews = await Interview.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
       .lean();
 

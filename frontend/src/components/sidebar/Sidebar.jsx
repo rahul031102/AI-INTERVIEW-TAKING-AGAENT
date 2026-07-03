@@ -3,6 +3,10 @@ import SidebarItem from './SidebarItem';
 import { sidebarItems, bottomSidebarItems } from '../../data/sidebarData';
 
 export default function Sidebar() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const name = user.username || 'User';
+  const initial = name.charAt(0).toUpperCase();
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -100 }}
@@ -60,9 +64,9 @@ export default function Sidebar() {
         className="mt-6 p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-white/10 text-center"
       >
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 mx-auto mb-2 flex items-center justify-center text-white font-bold">
-          R
+          {initial}
         </div>
-        <p className="text-sm text-white font-medium">Rahul</p>
+        <p className="text-sm text-white font-medium capitalize">{name}</p>
         <p className="text-xs text-zinc-400">Premium Member</p>
       </motion.div>
     </motion.div>

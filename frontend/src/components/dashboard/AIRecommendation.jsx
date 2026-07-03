@@ -1,8 +1,13 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import GlassCard from '../common/GlassCard';
 
-export default function AIRecommendation() {
+export default function AIRecommendation({ weakTopics = [] }) {
+  const navigate = useNavigate();
+  const topTopic = weakTopics[0]?.topic;
+
   return (
     <GlassCard gradient delay={0.5}>
       <div className="flex items-start justify-between mb-6">
@@ -24,9 +29,15 @@ export default function AIRecommendation() {
         transition={{ delay: 0.1 }}
         className="text-zinc-200 leading-relaxed mb-6 text-sm"
       >
-        Based on your recent performance, focus on <strong>authentication flows</strong> and 
-        <strong> backend system design</strong> to significantly improve your interview performance. 
-        These topics appear in 40% of FAANG interviews.
+        {topTopic ? (
+          <>
+            Based on your recent performance, focus on <strong>{topTopic}</strong> and related design/architectural topics. These concepts appear in about 40% of senior engineer technical screenings.
+          </>
+        ) : (
+          <>
+            Excellent performance so far! To push your limits, we recommend focusing on advanced concepts like <strong>Distributed Systems Design</strong> or <strong>Optimizing Database Queries</strong>.
+          </>
+        )}
       </motion.p>
 
       <motion.div
@@ -37,7 +48,7 @@ export default function AIRecommendation() {
       >
         <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">Recommended Topics:</p>
         <div className="flex flex-wrap gap-2">
-          {['OAuth 2.0', 'JWT', 'Microservices', 'Load Balancing'].map((topic, index) => (
+          {(topTopic ? [topTopic, 'Design Patterns', 'System Scale', 'Error Handling'] : ['OAuth 2.0', 'JWT', 'Microservices', 'Load Balancing']).map((topic, index) => (
             <motion.span
               key={topic}
               initial={{ opacity: 0, scale: 0.8 }}
@@ -57,10 +68,15 @@ export default function AIRecommendation() {
         transition={{ delay: 0.4 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="w-full mt-6 py-4 rounded-2xl bg-white text-black font-semibold hover:bg-gray-100 transition-all duration-300 shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+        onClick={() => navigate('/interview')}
+        className="w-full mt-6 py-4 rounded-2xl bg-white text-black font-semibold hover:bg-gray-100 transition-all duration-300 shadow-[0_10px_30px_rgba(255,255,255,0.1)] cursor-pointer"
       >
-        Start Recommended Interview
+        Start Practice Session
       </motion.button>
     </GlassCard>
   );
 }
+
+AIRecommendation.propTypes = {
+  weakTopics: PropTypes.array,
+};

@@ -6,14 +6,14 @@ export default function Logout() {
 
   useEffect(() => {
     localStorage.removeItem('token');
-    alert('Logout feature coming soon');
-    navigate('/dashboard');
+    localStorage.removeItem('user');
+    navigate('/login');
   }, [navigate]);
 
   return (
     <div className="min-h-screen bg-black text-white p-10">
       <h1 className="text-4xl font-bold">Logging out...</h1>
-      <p className="mt-4 text-zinc-400">Redirecting you back to the dashboard.</p>
+      <p className="mt-4 text-zinc-400">Redirecting to sign-in page.</p>
     </div>
   );
 }

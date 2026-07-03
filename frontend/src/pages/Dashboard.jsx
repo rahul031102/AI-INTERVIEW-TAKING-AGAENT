@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Target, Zap } from 'lucide-react';
 import StatsCard from '../components/dashboard/StatsCard';
@@ -8,36 +10,159 @@ import AIRecommendation from '../components/dashboard/AIRecommendation';
 import DailyGoal from '../components/dashboard/DailyGoal';
 
 export default function Dashboard() {
+  const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:5000/history')
+      .then((res) => {
+        setInterviews(res.data.interviews || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching history:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const parseScoreVal = (scoreStr) => {
+    if (!scoreStr) return 0;
+    const match = scoreStr.match(/^(\d+(?:\.\d+)?)\s*\/\s*10/);
+    if (match) return parseFloat(match[1]);
+    const val = parseFloat(scoreStr);
+    return isNaN(val) ? 0 : val;
+  };
+
+  // 1. Calculate Average Score
+  const totalInterviews = interviews.length;
+  const validScores = interviews.map(i => parseScoreVal(i.score)).filter(s => s > 0);
+  const avgScore = validScores.length
+    ? (validScores.reduce((sum, val) => sum + val, 0) / validScores.length).toFixed(1)
+    : '0.0';
+
+  // 2. Calculate Success Rate (score >= 7.0)
+  const strongSessions = validScores.filter(s => s >= 7.0).length;
+  const successRate = totalInterviews
+    ? Math.round((strongSessions / totalInterviews) * 100)
+    : 0;
+
+  // 3. Calculate Streak of daily active sessions
+  const calculateStreak = (sessions) => {
+    if (!sessions.length) return 0;
+    const dates = sessions.map(i => new Date(i.createdAt).toDateString());
+    const uniqueDates = Array.from(new Set(dates)).map(d => new Date(d));
+    uniqueDates.sort((a, b) => b - a);
+
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const latest = uniqueDates[0];
+    if (latest < yesterday) return 0;
+
+    let current = new Date(latest);
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const diff = Math.round((current - uniqueDates[i]) / (1000 * 60 * 60 * 24));
+      if (diff === 0) {
+        streak++;
+        current.setDate(current.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+  const streak = calculateStreak(interviews);
+
   const statsData = [
     {
       title: 'Average Score',
-      value: '8.7',
+      value: `${avgScore}/10`,
       icon: TrendingUp,
-      change: '+2.5% from last week',
+      change: totalInterviews ? 'Based on AI review' : 'No sessions yet',
       gradient: true,
     },
     {
-      title: 'Total Interviews',
-      value: '24',
+      title: 'Total Sessions',
+      value: `${totalInterviews}`,
       icon: Clock,
-      change: '+3 this week',
+      change: 'All-time practice runs',
       gradient: false,
     },
     {
       title: 'Success Rate',
-      value: '85%',
+      value: `${successRate}%`,
       icon: Target,
-      change: '+5% improvement',
+      change: 'Percentage of scores >= 7',
       gradient: false,
     },
     {
       title: 'Streak',
-      value: '7',
+      value: `${streak} Days`,
       icon: Zap,
-      change: 'Keep it up!',
+      change: streak > 0 ? 'Keep practicing daily!' : 'Start a new streak today',
       gradient: false,
     },
   ];
+
+  // 4. Extract Weak Topics count
+  const extractWeakTopics = (sessions) => {
+    const counts = {};
+    sessions.forEach(i => {
+      if (Array.isArray(i.weakTopics)) {
+        i.weakTopics.forEach(topic => {
+          const clean = topic.replace(/^-\s*/, '').trim();
+          if (clean) {
+            counts[clean] = (counts[clean] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    return Object.entries(counts)
+      .map(([topic, count]) => ({
+        topic,
+        count,
+        color: count >= 3 ? 'red' : count === 2 ? 'orange' : 'yellow',
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  };
+  const weakTopics = extractWeakTopics(interviews);
+
+  // 5. Extract Weekly Progression Chart Data
+  const getChartData = (sessions) => {
+    // default/fallback chart if no sessions
+    if (!sessions.length) {
+      return [
+        { label: 'Mon', value: 0 },
+        { label: 'Tue', value: 0 },
+        { label: 'Wed', value: 0 },
+        { label: 'Thu', value: 0 },
+        { label: 'Fri', value: 0 },
+        { label: 'Sat', value: 0 },
+        { label: 'Sun', value: 0 },
+      ];
+    }
+    return sessions
+      .slice(0, 7)
+      .reverse()
+      .map(i => ({
+        label: new Date(i.createdAt).toLocaleDateString(undefined, { weekday: 'short' }),
+        value: parseScoreVal(i.score),
+      }));
+  };
+  const chartData = getChartData(interviews);
+
+  // 6. Calculate interviews done today
+  const todayCount = interviews.filter(i => {
+    const d = new Date(i.createdAt);
+    const today = new Date();
+    return d.toDateString() === today.toDateString();
+  }).length;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -47,8 +172,16 @@ export default function Dashboard() {
     },
   };
 
+  if (loading) {
+    return (
+      <div className="p-8 min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-zinc-400 animate-pulse text-lg">Loading your dashboard analytics...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
+    <div className="p-8 bg-black min-h-screen">
       {/* Stats Grid */}
       <motion.div
         variants={containerVariants}
@@ -82,8 +215,8 @@ export default function Dashboard() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <AnalyticsChart />
-          <RecentInterviews />
+          <AnalyticsChart chartData={chartData} avgScore={avgScore} totalCount={totalInterviews} successRate={successRate} />
+          <RecentInterviews interviews={interviews.slice(0, 5)} />
         </motion.div>
 
         {/* Right Column - Weak Topics & Recommendation */}
@@ -93,8 +226,8 @@ export default function Dashboard() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <WeakTopics />
-          <AIRecommendation />
+          <WeakTopics weakTopics={weakTopics} />
+          <AIRecommendation weakTopics={weakTopics} />
         </motion.div>
       </motion.div>
 
@@ -104,7 +237,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <DailyGoal />
+        <DailyGoal todayCount={todayCount} avgScore={avgScore} />
       </motion.div>
     </div>
   );

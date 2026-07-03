@@ -1,8 +1,13 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import GlassCard from '../common/GlassCard';
 
-export default function DailyGoal() {
-  const progress = 75;
+export default function DailyGoal({ todayCount = 0, avgScore = '0.0' }) {
+  const navigate = useNavigate();
+  const target = 5;
+  const progress = Math.min(Math.round((todayCount / target) * 100), 100);
+  const remaining = Math.max(target - todayCount, 0);
 
   return (
     <GlassCard delay={0.6}>
@@ -33,7 +38,15 @@ export default function DailyGoal() {
         transition={{ delay: 0.2 }}
         className="text-zinc-400 leading-relaxed text-sm mb-6"
       >
-        Complete <strong className="text-white">2 more interviews</strong> today to hit your target.
+        {remaining > 0 ? (
+          <>
+            Complete <strong className="text-white">{remaining} more interviews</strong> today to hit your daily target.
+          </>
+        ) : (
+          <>
+            🎉 <strong>Congratulations!</strong> You reached your daily goal of practicing {target} sessions!
+          </>
+        )}
       </motion.p>
 
       <motion.div
@@ -43,11 +56,11 @@ export default function DailyGoal() {
         className="grid grid-cols-2 gap-4"
       >
         <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-          <p className="text-2xl font-bold text-white">3/5</p>
+          <p className="text-2xl font-bold text-white">{todayCount}/{target}</p>
           <p className="text-xs text-zinc-400 mt-1">Interviews Today</p>
         </div>
         <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-          <p className="text-2xl font-bold text-green-400">8.4</p>
+          <p className="text-2xl font-bold text-green-400">{avgScore}</p>
           <p className="text-xs text-zinc-400 mt-1">Avg Score</p>
         </div>
       </motion.div>
@@ -58,10 +71,16 @@ export default function DailyGoal() {
         transition={{ delay: 0.4 }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold transition-all"
+        onClick={() => navigate('/interview')}
+        className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold transition-all cursor-pointer"
       >
-        Continue Interview Session
+        Continue Practice Session
       </motion.button>
     </GlassCard>
   );
 }
+
+DailyGoal.propTypes = {
+  todayCount: PropTypes.number,
+  avgScore: PropTypes.string,
+};

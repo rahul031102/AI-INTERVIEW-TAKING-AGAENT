@@ -1,10 +1,8 @@
 import { 
   LayoutDashboard, 
   MessageSquare, 
-  BarChart3, 
   FileText,
   History,
-  Settings,
   LogOut
 } from 'lucide-react';
 
@@ -37,23 +35,9 @@ export const sidebarItems = [
     path: '/history',
     badge: null,
   },
-  {
-    id: 5,
-    label: 'Analytics',
-    icon: BarChart3,
-    path: '/analytics',
-    badge: null,
-  },
 ];
 
 export const bottomSidebarItems = [
-  {
-    id: 6,
-    label: 'Settings',
-    icon: Settings,
-    path: '/settings',
-    badge: null,
-  },
   {
     id: 7,
     label: 'Logout',

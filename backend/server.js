@@ -32,17 +32,6 @@ try {
   console.log('Could not list resumeRoutes stack', e);
 }
 
-// Global error logger to capture middleware errors
-app.use((err, req, res, next) => {
-  console.error('EXPRESS ERROR', err && err.message ? err.message : err);
-  try {
-    res.status(500).json({ error: err?.message || 'Internal Server Error', details: String(err) });
-  } catch (e) {
-    console.error('Error sending error response', e);
-    next(e);
-  }
-});
-
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
@@ -162,6 +151,17 @@ app.get('/history', async (req, res) => {
     res.status(500).json({
       error: 'Could not load interview history',
     });
+  }
+});
+
+// Global error logger to capture middleware errors
+app.use((err, req, res, next) => {
+  console.error('EXPRESS ERROR', err && err.message ? err.message : err);
+  try {
+    res.status(500).json({ error: err?.message || 'Internal Server Error', details: String(err) });
+  } catch (e) {
+    console.error('Error sending error response', e);
+    next(e);
   }
 });
 

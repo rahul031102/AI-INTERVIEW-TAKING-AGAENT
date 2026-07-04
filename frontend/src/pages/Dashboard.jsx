@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Target, Zap } from 'lucide-react';
 import StatsCard from '../components/dashboard/StatsCard';
@@ -14,8 +14,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get('http://localhost:5000/history')
+    api
+      .get('/history')
       .then((res) => {
         setInterviews(res.data.interviews || []);
         setLoading(false);

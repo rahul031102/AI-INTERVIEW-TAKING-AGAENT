@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import Navbar from '../components/Navbar';
 
 export default function History() {
@@ -7,8 +7,8 @@ export default function History() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get('http://localhost:5000/history')
+    api
+      .get('/history')
       .then((res) => {
         setInterviews(res.data.interviews || []);
         setLoading(false);

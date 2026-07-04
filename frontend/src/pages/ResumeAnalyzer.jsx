@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 
 export default function ResumeAnalyzer() {
   const [file, setFile] = useState(null);
@@ -22,8 +22,8 @@ export default function ResumeAnalyzer() {
       const formData = new FormData();
       formData.append('resume', file);
 
-      const res = await axios.post(
-        'http://localhost:5000/resume/analyze',
+      const res = await api.post(
+        '/resume/analyze',
         formData
       );
 

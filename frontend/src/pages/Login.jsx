@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -23,14 +23,14 @@ export default function Login() {
         ? { email, password }
         : { username, email, password };
 
-      const res = await axios.post(`http://localhost:5000${endpoint}`, payload);
+      const res = await api.post(endpoint, payload);
 
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         
         // Configure Axios default header for subsequent requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         
         navigate('/dashboard');
       }

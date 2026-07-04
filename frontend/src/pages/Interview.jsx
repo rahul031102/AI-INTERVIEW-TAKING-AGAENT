@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import InterviewPanel from '../components/InterviewPanel';
@@ -28,7 +28,7 @@ export default function InterviewPage() {
   const getQuestion = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/question');
+      const res = await api.get('/question');
       setQuestion(res.data.question || 'Welcome to the interview.');
       setAnswer('');
       setFeedback('');
@@ -79,7 +79,7 @@ export default function InterviewPage() {
 
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:5000/evaluate', {
+      const res = await api.post('/evaluate', {
         question,
         answer,
       });

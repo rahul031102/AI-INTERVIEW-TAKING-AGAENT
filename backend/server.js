@@ -7,6 +7,7 @@ import Interview from './models/Interview.js';
 import resumeRoutes from './routes/resumeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import authMiddleware from './middlewares/authMiddleware.js';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -39,7 +40,13 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-app.get('/question', authMiddleware, async (req, res) => {
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 requests per window per IP
+  message: { error: 'Too many requests. Please try again later.' },
+});
+
+app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -65,7 +72,7 @@ app.get('/question', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/evaluate', authMiddleware, async (req, res) => {
+app.post('/evaluate', authMiddleware, aiLimiter, async (req, res) => {
   try {
     const { question, answer } = req.body;
 

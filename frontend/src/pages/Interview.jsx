@@ -77,6 +77,11 @@ export default function InterviewPage() {
       return;
     }
 
+    if (!answer.trim()) {
+      setFeedback('Please write or record an answer before submitting.');
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await api.post('/evaluate', {

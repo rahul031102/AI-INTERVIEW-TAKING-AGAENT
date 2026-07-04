@@ -74,6 +74,10 @@ export default function PremiumInterviewUI() {
 
   const submitAnswer = async () => {
     if (!question) return;
+    if (!answer.trim()) {
+      setFeedback('Please write or record an answer before submitting.');
+      return;
+    }
     setLoading(true);
 
     try {

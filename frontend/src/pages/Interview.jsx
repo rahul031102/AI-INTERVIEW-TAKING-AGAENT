@@ -25,10 +25,10 @@ export default function InterviewPage() {
     return match ? match[1].trim() : '';
   };
 
-  const getQuestion = async () => {
+  const getQuestion = async (topic, difficulty) => {
     try {
       setLoading(true);
-      const res = await api.get('/question');
+      const res = await api.get('/question', { params: { topic, difficulty } });
       setQuestion(res.data.question || 'Welcome to the interview.');
       setAnswer('');
       setFeedback('');

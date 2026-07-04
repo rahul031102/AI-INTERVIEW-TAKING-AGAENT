@@ -47,6 +47,7 @@ const aiLimiter = rateLimit({
 });
 
 app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
+  const { topic = 'MERN stack', difficulty = 'beginner' } = req.query;
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -55,7 +56,7 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
         {
           role: 'user',
           content:
-            'Ask one beginner MERN stack interview question.',
+            `Ask one ${difficulty} level ${topic} interview question. Return only the question, no preamble.`,
         },
       ],
     });

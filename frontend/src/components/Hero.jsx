@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -21,6 +22,9 @@ const itemVariants = {
 };
 
 export default function Hero({ onStart, interviewStarted }) {
+  const [topic, setTopic] = useState('MERN Stack');
+  const [difficulty, setDifficulty] = useState('beginner');
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
@@ -60,11 +64,43 @@ export default function Hero({ onStart, interviewStarted }) {
             Start a live MERN stack interview, speak your response, and receive instant AI feedback with follow-up questions.
           </motion.p>
 
+          {!interviewStarted && (
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-2 font-semibold">Topic</label>
+                <select
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50 transition-all cursor-pointer"
+                >
+                  <option value="MERN Stack">MERN Stack</option>
+                  <option value="JavaScript">JavaScript</option>
+                  <option value="React">React</option>
+                  <option value="Node.js">Node.js</option>
+                  <option value="System Design">System Design</option>
+                  <option value="DSA">DSA</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-2 font-semibold">Difficulty</label>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50 transition-all cursor-pointer"
+                >
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+            </motion.div>
+          )}
+
           <motion.button
             variants={itemVariants}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onStart}
+            onClick={() => onStart(topic, difficulty)}
             className="rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_20px_60px_rgba(124,58,237,0.25)] transition"
           >
             {interviewStarted ? 'Continue Interview' : 'Start Interview'}

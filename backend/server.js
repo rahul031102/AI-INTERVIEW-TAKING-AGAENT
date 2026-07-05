@@ -75,6 +75,8 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
     effectiveTopic = mernParts[Math.floor(Math.random() * mernParts.length)];
   }
 
+  const randomSeed = Math.floor(Math.random() * 100000);
+
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -84,6 +86,8 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
           role: 'user',
           content:
             `You are a senior technical interviewer at a real software company conducting a live interview. Ask one ${difficulty}-level ${effectiveTopic} interview question, phrased the way a real interviewer would say it out loud.
+
+(Internal variety seed: ${randomSeed} — use this to genuinely vary which specific concept you pick, don't default to the most commonly asked question for this topic.)
 
 Match the question STYLE to the difficulty level:
 - If difficulty is "beginner": ask a direct, conversational explain/definition-style question about a core concept (e.g. "Can you explain what middleware is in Express.js and why we use it?"). Keep it approachable, one concept at a time — NOT a multi-step scenario or system design question.

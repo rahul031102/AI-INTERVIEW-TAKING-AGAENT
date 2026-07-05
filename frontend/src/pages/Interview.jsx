@@ -18,7 +18,13 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
-  const [askedQuestions, setAskedQuestions] = useState([]);
+  const [askedQuestions, setAskedQuestions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('askedQuestions') || '[]');
+    } catch {
+      return [];
+    }
+  });
   const [history, setHistory] = useState([]);
 
   const parseSection = (text, start, end) => {
@@ -35,7 +41,11 @@ export default function InterviewPage() {
       });
       const qText = res.data.question || 'Welcome to the interview.';
       setQuestion(qText);
-      setAskedQuestions((prev) => [...prev, qText]);
+      setAskedQuestions((prev) => {
+        const updated = [...prev, qText];
+        localStorage.setItem('askedQuestions', JSON.stringify(updated));
+        return updated;
+      });
       setAnswer('');
       setFeedback('');
       setScore('');
@@ -129,7 +139,11 @@ export default function InterviewPage() {
   const handleNextQuestion = () => {
     if (!nextQuestion) return;
     setQuestion(nextQuestion);
-    setAskedQuestions((prev) => [...prev, nextQuestion]);
+    setAskedQuestions((prev) => {
+      const updated = [...prev, nextQuestion];
+      localStorage.setItem('askedQuestions', JSON.stringify(updated));
+      return updated;
+    });
     setAnswer('');
     setFeedback('');
     setScore('');

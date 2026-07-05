@@ -18,7 +18,7 @@ mongoose
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+app.use(cors({ origin: (process.env.CLIENT_URL || "http://localhost:5173").trim() }));
 app.use(express.json());
 // Log incoming requests for debugging
 app.use((req, res, next) => {

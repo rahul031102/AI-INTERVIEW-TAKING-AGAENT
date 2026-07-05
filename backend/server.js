@@ -18,7 +18,7 @@ mongoose
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
 app.use(express.json());
 // Log incoming requests for debugging
 app.use((req, res, next) => {
@@ -47,13 +47,25 @@ const aiLimiter = rateLimit({
 });
 
 app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
-  const { topic = 'MERN stack', difficulty = 'beginner', exclude = '[]' } = req.query;
+  const { topic = 'MERN stack', difficulty = 'beginner', exclude = '[]', history = '[]' } = req.query;
   let excludedQuestions = [];
   try {
     excludedQuestions = JSON.parse(exclude);
   } catch (e) {
     excludedQuestions = [];
   }
+
+  let parsedHistory = [];
+  try {
+    parsedHistory = JSON.parse(history);
+  } catch (e) {
+    parsedHistory = [];
+  }
+
+  const historyBlock = parsedHistory.length
+    ? parsedHistory.map((h, i) => `Q${i + 1}: ${h.question}\nCandidate's Answer: ${h.answer}\n`).join('\n')
+    : '(This is the first question of the interview.)';
+
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -67,6 +79,9 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
 Avoid generic questions like "What is the difference between X and Y" unless genuinely necessary for the topic.
 Do NOT repeat or closely rephrase any of these already-asked questions:
 ${excludedQuestions.length ? excludedQuestions.map((q) => `- ${q}`).join('\n') : '(none yet)'}
+
+Conversation history so far:
+${historyBlock}
 
 Return only the question text, no preamble.`,
         },
@@ -87,16 +102,23 @@ Return only the question text, no preamble.`,
 
 app.post('/evaluate', authMiddleware, aiLimiter, async (req, res) => {
   try {
-    const { question, answer } = req.body;
+    const { question, answer, history = [] } = req.body;
+
+    const historyBlock = history.length
+      ? history.map((h, i) => `Q${i + 1}: ${h.question}\nCandidate's Answer: ${h.answer}\n`).join('\n')
+      : '(This is the first question of the interview.)';
 
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
-
+      temperature: 0.85,
       messages: [
         {
           role: 'user',
           content: `
-You are an intelligent senior software engineering interviewer.
+You are conducting one continuous, adaptive technical interview — not a quiz with isolated questions. You remember everything the candidate has said so far and let it genuinely shape what you ask next, the same way a real interviewer builds on a conversation rather than reading from a fixed script.
+
+Conversation so far:
+${historyBlock}
 
 Interview Question:
 ${question}
@@ -107,8 +129,8 @@ ${answer}
 Your task:
 1. Evaluate the answer
 2. Detect weak technical areas
-3. Decide if candidate is weak or strong
-4. Generate a smart follow-up question
+3. Decide if the candidate is weak or strong on this specific point
+4. Generate the next question the way a real interviewer would choose it: if the answer was strong, go deeper into the same area or raise the difficulty; if it was weak or vague, ask a clarifying follow-up on exactly what was unclear; if this topic has been covered enough already based on the conversation so far, move to a genuinely different angle instead of circling back. Never repeat a question already asked above.
 
 Return STRICTLY in this format:
 

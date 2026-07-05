@@ -19,6 +19,7 @@ export default function InterviewPage() {
   const [isListening, setIsListening] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [askedQuestions, setAskedQuestions] = useState([]);
+  const [history, setHistory] = useState([]);
 
   const parseSection = (text, start, end) => {
     const regex = new RegExp(`${start}\\s*([\\s\\S]*?)${end}`);
@@ -30,7 +31,7 @@ export default function InterviewPage() {
     try {
       setLoading(true);
       const res = await api.get('/question', {
-        params: { topic, difficulty, exclude: JSON.stringify(askedQuestions) },
+        params: { topic, difficulty, exclude: JSON.stringify(askedQuestions), history: JSON.stringify(history) },
       });
       const qText = res.data.question || 'Welcome to the interview.';
       setQuestion(qText);
@@ -92,10 +93,12 @@ export default function InterviewPage() {
       const res = await api.post('/evaluate', {
         question,
         answer,
+        history,
       });
 
       const feedbackText = res.data.feedback || 'No feedback returned.';
       setFeedback(feedbackText);
+      setHistory((prev) => [...prev, { question, answer, feedback: feedbackText }]);
 
       const scoreMatch = feedbackText.match(/Score:\s*(.*)/);
       const strengthsText = parseSection(feedbackText, 'Strengths:', 'Weaknesses:');

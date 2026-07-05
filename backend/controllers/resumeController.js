@@ -277,8 +277,7 @@ const postProcessAnalysis = (analysis, resumeText, jobDescription) => {
     /\b\d+\s*x\s*faster\b/i,
     /\b\d+x\b/i,
     /\b\d+\s*times\s*faster\b/i,
-    /\b\d+\s*faster\b/i,
-    /\d+/
+    /\b\d+\s*faster\b/i
   ];
   
   const isQuantified = (bullet) => {

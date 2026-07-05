@@ -66,6 +66,15 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
     ? parsedHistory.map((h, i) => `Q${i + 1}: ${h.question}\nCandidate's Answer: ${h.answer}\n`).join('\n')
     : '(This is the first question of the interview.)';
 
+  // MERN Stack is an umbrella, not a real single subject — pick one
+  // specific technology per question instead of asking a blended,
+  // vague "MERN stack" question every time.
+  let effectiveTopic = topic;
+  if (/mern/i.test(topic)) {
+    const mernParts = ['MongoDB', 'Express.js', 'React', 'Node.js'];
+    effectiveTopic = mernParts[Math.floor(Math.random() * mernParts.length)];
+  }
+
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -74,7 +83,12 @@ app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
         {
           role: 'user',
           content:
-            `You are a senior technical interviewer at a real software company conducting a live interview. Ask one ${difficulty}-level ${topic} interview question, phrased the way a real interviewer would say it out loud — conversational, sometimes scenario-based ("Suppose you had to...", "Walk me through how you'd...", "Tell me about a time you..."), not a textbook definition question.
+            `You are a senior technical interviewer at a real software company conducting a live interview. Ask one ${difficulty}-level ${effectiveTopic} interview question, phrased the way a real interviewer would say it out loud.
+
+Match the question STYLE to the difficulty level:
+- If difficulty is "beginner": ask a direct, conversational explain/definition-style question about a core concept (e.g. "Can you explain what middleware is in Express.js and why we use it?"). Keep it approachable, one concept at a time — NOT a multi-step scenario or system design question.
+- If difficulty is "intermediate": mix a moderate scenario question with a deeper conceptual one, introducing simple design or debugging tradeoffs.
+- If difficulty is "advanced": scenario-based, system-design, or architecture/tradeoff questions are appropriate.
 
 Avoid generic questions like "What is the difference between X and Y" unless genuinely necessary for the topic.
 Do NOT repeat or closely rephrase any of these already-asked questions:

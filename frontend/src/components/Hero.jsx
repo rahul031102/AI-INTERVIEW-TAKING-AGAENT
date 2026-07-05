@@ -27,6 +27,7 @@ export default function Hero({ onStart, interviewStarted }) {
 
   const subTopicMap = {
     'MERN Stack': ['MongoDB', 'Express.js', 'React', 'Node.js'],
+    'HTML/CSS/JS': ['HTML', 'CSS', 'JavaScript'],
     'DSA': ['Arrays & Strings', 'Linked Lists', 'Trees & Graphs', 'Dynamic Programming', 'Sorting & Searching', 'Recursion & Backtracking'],
     'System Design': ['Scalability', 'Database Design', 'Caching', 'API Design', 'Load Balancing', 'Microservices'],
   };
@@ -89,9 +90,7 @@ export default function Hero({ onStart, interviewStarted }) {
                   className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50 transition-all cursor-pointer"
                 >
                   <option value="MERN Stack">MERN Stack</option>
-                  <option value="JavaScript">JavaScript</option>
-                  <option value="React">React</option>
-                  <option value="Node.js">Node.js</option>
+                  <option value="HTML/CSS/JS">HTML/CSS/JS</option>
                   <option value="System Design">System Design</option>
                   <option value="DSA">DSA</option>
                 </select>

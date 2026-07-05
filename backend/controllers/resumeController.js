@@ -71,13 +71,20 @@ const getHeuristicAnalysis = (resumeText, jobDescription = '') => {
   const formattingIssues = [];
 
   // Check section headers
-  const headers = ['experience', 'education', 'skills', 'projects'];
-  headers.forEach(h => {
+  const requiredHeaders = ['experience', 'education', 'skills'];
+  requiredHeaders.forEach(h => {
     if (!low.includes(h)) {
       formattingScore -= 15;
       formattingIssues.push(`Missing standard "${h.charAt(0).toUpperCase() + h.slice(1)}" section header`);
     }
   });
+
+  const additionalHeaders = ['projects', 'achievements', 'certifications', 'awards'];
+  const hasAdditional = additionalHeaders.some(h => low.includes(h));
+  if (!hasAdditional) {
+    formattingScore -= 15;
+    formattingIssues.push('Missing standard "Projects", "Achievements", "Certifications" or "Awards" section header');
+  }
 
   // Check contact info
   const contactTerms = ['email', 'phone', '@', 'linkedin', 'github'];
@@ -144,7 +151,7 @@ Analyze this resume text against the provided job description. If no job descrip
 
 Perform an in-depth audit of:
 1. ATS Score (0-100) based on keyword match, relevance, and criteria coverage.
-2. Formatting Score (0-100) based on structure, presence of standard section headers (Experience, Education, Skills, Projects, Summary), contact details presence, absence of tables/images that block parsers, and usage of quantified metrics in achievements.
+2. Formatting Score (0-100) based on structure, presence of standard section headers (Experience, Education, Skills, Projects, Summary, Achievements, Certifications, Awards — treat any of these as valid, not just the first five listed), contact details presence, absence of tables/images that block parsers, and usage of quantified metrics in achievements.
 3. Keyword comparison: matched skills vs missing technologies.
 4. Specific formatting issues detected (e.g. multi-columns, tables, non-standard section headers, missing email/phone).
 5. Strengths and weaknesses.
@@ -270,18 +277,13 @@ const postProcessAnalysis = (analysis, resumeText, jobDescription) => {
   const bullets = extractBullets(resumeText);
   const totalBullets = bullets.length;
 
-  // Quantification Checker: regex scan for %, digits, X users, Yx faster
-  const quantificationPatterns = [
-    /%/,
-    /\b\d+\s*users?\b/i,
-    /\b\d+\s*x\s*faster\b/i,
-    /\b\d+x\b/i,
-    /\b\d+\s*times\s*faster\b/i,
-    /\b\d+\s*faster\b/i
-  ];
-  
+  // Quantification Checker: strip years and phone numbers, then check for remaining digits
+  const yearPattern = /\b(19|20)\d{2}\b/g;
+  const phonePattern = /\+?\d[\d\s-]{7,}\d/g;
+
   const isQuantified = (bullet) => {
-    return quantificationPatterns.some(rx => rx.test(bullet));
+    const stripped = bullet.replace(phonePattern, '').replace(yearPattern, '');
+    return /\d/.test(stripped);
   };
 
   const quantifiedCount = bullets.filter(isQuantified).length;
@@ -330,13 +332,19 @@ const postProcessAnalysis = (analysis, resumeText, jobDescription) => {
   let heuristicFormattingScore = 100;
   const lowText = resumeText.toLowerCase();
   
-  // Headers check
-  const headers = ['experience', 'education', 'skills', 'projects'];
-  headers.forEach(h => {
+  // Headers check (widen to accept achievements, certifications, awards as valid alternatives)
+  const requiredHeaders = ['experience', 'education', 'skills'];
+  requiredHeaders.forEach(h => {
     if (!lowText.includes(h)) {
       heuristicFormattingScore -= 15;
     }
   });
+  
+  const additionalHeaders = ['projects', 'achievements', 'certifications', 'awards'];
+  const hasAdditional = additionalHeaders.some(h => lowText.includes(h));
+  if (!hasAdditional) {
+    heuristicFormattingScore -= 15;
+  }
   
   // Contact info check
   const contactTerms = ['email', 'phone', '@', 'linkedin', 'github'];

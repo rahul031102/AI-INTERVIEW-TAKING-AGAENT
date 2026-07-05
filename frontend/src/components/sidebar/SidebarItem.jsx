@@ -2,12 +2,13 @@ import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
 
-export default function SidebarItem({ item }) {
+export default function SidebarItem({ item, onClick }) {
   const Icon = item.icon;
 
   return (
     <NavLink
       to={item.path}
+      onClick={onClick}
       className={({ isActive }) =>
         `block w-full transition-all duration-300 ${
           isActive
@@ -41,4 +42,5 @@ SidebarItem.propTypes = {
     path: PropTypes.string.isRequired,
     badge: PropTypes.string,
   }).isRequired,
+  onClick: PropTypes.func,
 };

@@ -1,17 +1,26 @@
 import { motion } from 'framer-motion';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 
-export default function Topbar() {
+export default function Topbar({ onMenuClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-gradient-to-b from-slate-950/80 to-transparent border-b border-white/10 px-8 py-4 flex items-center justify-between backdrop-blur-xl"
+      className="bg-gradient-to-b from-slate-950/80 to-transparent border-b border-white/10 px-6 py-4 flex items-center justify-between backdrop-blur-xl"
     >
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-sm text-zinc-400 mt-1">Welcome back to your interview preparation journey</p>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onMenuClick}
+          className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all lg:hidden text-white cursor-pointer"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Dashboard</h1>
+          <p className="hidden md:block text-sm text-zinc-400 mt-1">Welcome back to your interview preparation journey</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

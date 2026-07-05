@@ -12,8 +12,28 @@ const extractTextFromPDF = async (buffer) => {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const strings = content.items.map((item) => item.str);
-    text += strings.join(' ') + '\n';
+    
+    let pageText = '';
+    let lastY = null;
+
+    for (const item of content.items) {
+      if (typeof item.str === 'string') {
+        const currentY = item.transform && item.transform[5];
+        if (lastY !== null && currentY !== lastY) {
+          pageText += '\n' + item.str;
+        } else {
+          if (pageText === '' || pageText.endsWith('\n') || pageText.endsWith(' ') || item.str.startsWith(' ')) {
+            pageText += item.str;
+          } else {
+            pageText += ' ' + item.str;
+          }
+        }
+        if (currentY !== undefined) {
+          lastY = currentY;
+        }
+      }
+    }
+    text += pageText + '\n';
   }
 
   return text;

@@ -47,16 +47,28 @@ const aiLimiter = rateLimit({
 });
 
 app.get('/question', authMiddleware, aiLimiter, async (req, res) => {
-  const { topic = 'MERN stack', difficulty = 'beginner' } = req.query;
+  const { topic = 'MERN stack', difficulty = 'beginner', exclude = '[]' } = req.query;
+  let excludedQuestions = [];
+  try {
+    excludedQuestions = JSON.parse(exclude);
+  } catch (e) {
+    excludedQuestions = [];
+  }
   try {
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
-
+      temperature: 0.9,
       messages: [
         {
           role: 'user',
           content:
-            `Ask one ${difficulty} level ${topic} interview question. Return only the question, no preamble.`,
+            `You are a senior technical interviewer at a real software company conducting a live interview. Ask one ${difficulty}-level ${topic} interview question, phrased the way a real interviewer would say it out loud — conversational, sometimes scenario-based ("Suppose you had to...", "Walk me through how you'd...", "Tell me about a time you..."), not a textbook definition question.
+
+Avoid generic questions like "What is the difference between X and Y" unless genuinely necessary for the topic.
+Do NOT repeat or closely rephrase any of these already-asked questions:
+${excludedQuestions.length ? excludedQuestions.map((q) => `- ${q}`).join('\n') : '(none yet)'}
+
+Return only the question text, no preamble.`,
         },
       ],
     });

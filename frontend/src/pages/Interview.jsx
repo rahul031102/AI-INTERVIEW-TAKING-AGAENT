@@ -18,6 +18,7 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
+  const [askedQuestions, setAskedQuestions] = useState([]);
 
   const parseSection = (text, start, end) => {
     const regex = new RegExp(`${start}\\s*([\\s\\S]*?)${end}`);
@@ -28,8 +29,12 @@ export default function InterviewPage() {
   const getQuestion = async (topic, difficulty) => {
     try {
       setLoading(true);
-      const res = await api.get('/question', { params: { topic, difficulty } });
-      setQuestion(res.data.question || 'Welcome to the interview.');
+      const res = await api.get('/question', {
+        params: { topic, difficulty, exclude: JSON.stringify(askedQuestions) },
+      });
+      const qText = res.data.question || 'Welcome to the interview.';
+      setQuestion(qText);
+      setAskedQuestions((prev) => [...prev, qText]);
       setAnswer('');
       setFeedback('');
       setScore('');
@@ -121,6 +126,7 @@ export default function InterviewPage() {
   const handleNextQuestion = () => {
     if (!nextQuestion) return;
     setQuestion(nextQuestion);
+    setAskedQuestions((prev) => [...prev, nextQuestion]);
     setAnswer('');
     setFeedback('');
     setScore('');

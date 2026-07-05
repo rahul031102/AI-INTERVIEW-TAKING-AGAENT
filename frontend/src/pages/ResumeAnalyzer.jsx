@@ -64,6 +64,7 @@ export default function ResumeAnalyzer() {
     { label: 'Standard Projects Header', key: 'projects' },
     { label: 'Contact Info Detected (Email/Phone)', key: 'contact' },
     { label: 'Quantified Bullet Achievements', key: 'quantified' },
+    { label: 'Action Verb Variety', key: 'repetitive' },
     { label: 'Single-Column Layout Compatibility', key: 'column' }
   ];
 

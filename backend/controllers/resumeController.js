@@ -168,6 +168,234 @@ ${resumeText}
   return JSON.parse(jsonString);
 };
 
+const extractBullets = (text) => {
+  if (!text) return [];
+
+  // Match bullet points starting with common symbols
+  // We use a regex matching bullet characters, optionally preceded by spaces/newlines, and followed by spaces.
+  const bulletSymbolsRegex = /(?:^|[\r\n]|\s+)(?:[-*•▪◦●■♦⁃✔\u2022\u2023\u2043\u2219\u25cb\u25cf\u25e6\u25aa\u25ab])\s+/g;
+  
+  // Split by bullet symbols
+  const parts = text.split(bulletSymbolsRegex);
+  
+  let bullets = [];
+  
+  if (parts.length > 1) {
+    // Part 0 is pre-bullet text. Part 1 onwards are the bullets.
+    bullets = parts.slice(1).map(p => p.trim());
+  } else {
+    // If no bullet symbols are found, let's fall back to splitting by newlines, 
+    // and filter for lines that start with standard lists or digits/action verbs.
+    const lines = text.split(/[\r\n]+/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (/^[-*•▪◦●■♦⁃✔\u2022\u2023\u2043\u2219\u25cb\u25cf\u25e6\u25aa\u25ab]/.test(trimmed)) {
+        bullets.push(trimmed.replace(/^[-*•▪◦●■♦⁃✔\u2022\u2023\u2043\u2219\u25cb\u25cf\u25e6\u25aa\u25ab\s]+/, ''));
+      } else if (/^\d+[\s.)]/.test(trimmed)) {
+        bullets.push(trimmed.replace(/^\d+[\s.)]+/, ''));
+      }
+    }
+  }
+
+  // Clean trailing section headers from bullets (like "Education:", "Skills:")
+  const sectionKeywords = [
+    'education', 'skills', 'projects', 'experience', 'certifications', 'summary', 'contact', 'work history', 'professional experience'
+  ];
+
+  bullets = bullets.map(bullet => {
+    let cleaned = bullet;
+    for (const sec of sectionKeywords) {
+      const secRegex = new RegExp(`(?:\\s+|^)(${sec})(?:\\s*\\:|\\s+and|\\s+[A-Z])`, 'i');
+      const idx = cleaned.search(secRegex);
+      if (idx !== -1) {
+        cleaned = cleaned.substring(0, idx).trim();
+      }
+    }
+    return cleaned;
+  });
+
+  // Filter out empty/too-short bullets
+  return bullets.filter(b => b.length > 5);
+};
+
+const calculateDeterministicKeywordScore = (resumeText, jobDescription) => {
+  const standardKeywords = [
+    'JavaScript', 'TypeScript', 'React', 'Node', 'Express', 'MongoDB',
+    'SQL', 'Python', 'Java', 'AWS', 'Docker', 'Kubernetes', 'HTML', 'CSS',
+    'Git', 'C++', 'C#', 'TensorFlow', 'PyTorch', 'REST API', 'GraphQL', 'Next.js'
+  ];
+
+  const jdKeywords = jobDescription
+    ? standardKeywords.filter(keyword => 
+        jobDescription.toLowerCase().includes(keyword.toLowerCase())
+      )
+    : standardKeywords;
+
+  const found = [];
+  const low = resumeText.toLowerCase();
+
+  for (const keyword of standardKeywords) {
+    if (low.includes(keyword.toLowerCase())) {
+      found.push(keyword);
+    }
+  }
+
+  const matchedJdKeywords = jdKeywords.filter(k => found.includes(k));
+  const keywordMatchRate = jdKeywords.length > 0 ? (matchedJdKeywords.length / jdKeywords.length) : 0.5;
+  return Math.min(100, Math.round(keywordMatchRate * 80 + 20));
+};
+
+const postProcessAnalysis = (analysis, resumeText, jobDescription) => {
+  // Extract bullets
+  const bullets = extractBullets(resumeText);
+  const totalBullets = bullets.length;
+
+  // Quantification Checker: regex scan for %, digits, X users, Yx faster
+  const quantificationPatterns = [
+    /%/,
+    /\b\d+\s*users?\b/i,
+    /\b\d+\s*x\s*faster\b/i,
+    /\b\d+x\b/i,
+    /\b\d+\s*times\s*faster\b/i,
+    /\b\d+\s*faster\b/i,
+    /\d+/
+  ];
+  
+  const isQuantified = (bullet) => {
+    return quantificationPatterns.some(rx => rx.test(bullet));
+  };
+
+  const quantifiedCount = bullets.filter(isQuantified).length;
+  const quantificationRatio = totalBullets > 0 ? (quantifiedCount / totalBullets) : 0;
+  const quantificationScore = Math.round(quantificationRatio * 100);
+
+  // Repetition Checker: flag bullets starting with same verb
+  const getFirstVerb = (bullet) => {
+    const cleaned = bullet.replace(/^[^a-zA-Z]+/, '').trim();
+    const match = cleaned.match(/^[a-zA-Z]+(?:-[a-zA-Z]+)?/);
+    return match ? match[0].toLowerCase() : null;
+  };
+
+  const verbCounts = {};
+  bullets.forEach(bullet => {
+    const verb = getFirstVerb(bullet);
+    if (verb && verb.length > 2) {
+      verbCounts[verb] = (verbCounts[verb] || 0) + 1;
+    }
+  });
+
+  const repeatedVerbs = [];
+  let totalExcess = 0;
+  for (const [verb, count] of Object.entries(verbCounts)) {
+    if (count > 1) {
+      repeatedVerbs.push({ verb, count });
+      totalExcess += (count - 1);
+    }
+  }
+  const repetitionScore = totalBullets > 0 ? Math.max(0, 100 - (totalExcess * 10)) : 100;
+
+  // Deterministic Keyword score
+  const deterministicKeywordScore = calculateDeterministicKeywordScore(resumeText, jobDescription);
+
+  // Blend overall score (atsScore)
+  const aiAtsScore = typeof analysis.atsScore === 'number' ? analysis.atsScore : 50;
+  const finalAtsScore = Math.round(
+    (aiAtsScore * 0.4) +
+    (deterministicKeywordScore * 0.3) +
+    (quantificationScore * 0.2) +
+    (repetitionScore * 0.1)
+  );
+
+  // Blend layout parsing score (formattingScore)
+  const aiFormattingScore = typeof analysis.formattingScore === 'number' ? analysis.formattingScore : 50;
+  let heuristicFormattingScore = 100;
+  const lowText = resumeText.toLowerCase();
+  
+  // Headers check
+  const headers = ['experience', 'education', 'skills', 'projects'];
+  headers.forEach(h => {
+    if (!lowText.includes(h)) {
+      heuristicFormattingScore -= 15;
+    }
+  });
+  
+  // Contact info check
+  const contactTerms = ['email', 'phone', '@', 'linkedin', 'github'];
+  const hasContactInfo = contactTerms.some(term => lowText.includes(term));
+  if (!hasContactInfo) {
+    heuristicFormattingScore -= 20;
+  }
+  
+  // Quantification layout penalty
+  if (quantificationScore < 50) {
+    heuristicFormattingScore -= 15;
+  }
+  
+  // Repetition layout penalty
+  if (repetitionScore < 80) {
+    heuristicFormattingScore -= 10;
+  }
+  
+  heuristicFormattingScore = Math.max(20, heuristicFormattingScore);
+
+  const finalFormattingScore = Math.round(
+    (aiFormattingScore * 0.5) +
+    (heuristicFormattingScore * 0.5)
+  );
+
+  // Update original analysis properties
+  analysis.atsScore = finalAtsScore;
+  analysis.formattingScore = finalFormattingScore;
+
+  if (!analysis.formattingIssues) {
+    analysis.formattingIssues = [];
+  }
+
+  // Handle quantification flags
+  if (totalBullets === 0) {
+    analysis.formattingIssues.push(
+      "No bullet points detected in the resume text. Ensure achievements are structured as quantified bullet points."
+    );
+  } else if (quantificationScore < 50) {
+    analysis.formattingIssues.push(
+      `Low ratio of quantified achievements: Only ${quantifiedCount} out of ${totalBullets} bullet points (${quantificationScore}%) are quantified. Please add metrics like %, digits, "X users", or "Yx faster".`
+    );
+  }
+
+  // Handle repetition flags
+  if (repeatedVerbs.length > 0) {
+    analysis.formattingIssues.push(
+      `Repetitive starting verbs detected: Bullet points start with duplicate verbs. This flags verb variety issues.`
+    );
+    repeatedVerbs.forEach(({ verb, count }) => {
+      analysis.formattingIssues.push(
+        `Repetitive starting verb warning: The verb "${verb}" was used to start ${count} bullet points.`
+      );
+    });
+  }
+
+  // Update recommendations
+  if (!analysis.recommendations) {
+    analysis.recommendations = [];
+  }
+  if (totalBullets === 0) {
+    analysis.recommendations.push(
+      "Structure your resume achievements with clear, action-verb-led bullet points."
+    );
+  } else if (quantificationScore < 50) {
+    analysis.recommendations.push(
+      "Quantify your bullet achievements. Use specific numbers, percentages, and metrics to show the impact of your work."
+    );
+  }
+  if (repeatedVerbs.length > 0) {
+    analysis.recommendations.push(
+      "Vary the action verbs used at the beginning of your bullet points. Avoid starting multiple bullets with the same verb (e.g. 'Developed')."
+    );
+  }
+
+  return analysis;
+};
+
 export const analyzeResume = async (req, res) => {
   const file = req.file || (req.files && req.files[0]);
   const jobDescription = req.body.jobDescription || '';
@@ -190,6 +418,9 @@ export const analyzeResume = async (req, res) => {
       console.log('AI failed, using fallback:', aiError.message);
       analysis = getHeuristicAnalysis(resumeText, jobDescription);
     }
+
+    // Apply blended checks
+    analysis = postProcessAnalysis(analysis, resumeText, jobDescription);
 
     res.json(analysis);
   } catch (error) {
@@ -229,6 +460,9 @@ export const analyzeResumeBase64 = async (req, res) => {
       console.log('AI failed, using fallback:', aiError.message);
       analysis = getHeuristicAnalysis(resumeText, jobDescription);
     }
+
+    // Apply blended checks
+    analysis = postProcessAnalysis(analysis, resumeText, jobDescription);
 
     res.json(analysis);
   } catch (error) {

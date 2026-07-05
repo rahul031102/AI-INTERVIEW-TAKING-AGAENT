@@ -25,6 +25,21 @@ export default function Hero({ onStart, interviewStarted }) {
   const [topic, setTopic] = useState('MERN Stack');
   const [difficulty, setDifficulty] = useState('beginner');
 
+  const subTopicMap = {
+    'MERN Stack': ['MongoDB', 'Express.js', 'React', 'Node.js'],
+    'DSA': ['Arrays & Strings', 'Linked Lists', 'Trees & Graphs', 'Dynamic Programming', 'Sorting & Searching', 'Recursion & Backtracking'],
+    'System Design': ['Scalability', 'Database Design', 'Caching', 'API Design', 'Load Balancing', 'Microservices'],
+  };
+
+  const [subTopic, setSubTopic] = useState(subTopicMap['MERN Stack'][0]);
+
+  const handleTopicChange = (newTopic) => {
+    setTopic(newTopic);
+    if (subTopicMap[newTopic]) {
+      setSubTopic(subTopicMap[newTopic][0]);
+    }
+  };
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
@@ -70,7 +85,7 @@ export default function Hero({ onStart, interviewStarted }) {
                 <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-2 font-semibold">Topic</label>
                 <select
                   value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
+                  onChange={(e) => handleTopicChange(e.target.value)}
                   className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50 transition-all cursor-pointer"
                 >
                   <option value="MERN Stack">MERN Stack</option>
@@ -81,6 +96,22 @@ export default function Hero({ onStart, interviewStarted }) {
                   <option value="DSA">DSA</option>
                 </select>
               </div>
+              {subTopicMap[topic] && (
+                <div className="flex-1">
+                  <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-2 font-semibold">
+                    {topic} Focus
+                  </label>
+                  <select
+                    value={subTopic}
+                    onChange={(e) => setSubTopic(e.target.value)}
+                    className="w-full bg-slate-950 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50 transition-all cursor-pointer"
+                  >
+                    {subTopicMap[topic].map((part) => (
+                      <option key={part} value={part}>{part}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex-1">
                 <label className="block text-xs uppercase tracking-widest text-zinc-500 mb-2 font-semibold">Difficulty</label>
                 <select
@@ -100,7 +131,7 @@ export default function Hero({ onStart, interviewStarted }) {
             variants={itemVariants}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => onStart(topic, difficulty)}
+            onClick={() => onStart(subTopicMap[topic] ? subTopic : topic, difficulty)}
             className="rounded-3xl bg-gradient-to-r from-purple-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_20px_60px_rgba(124,58,237,0.25)] transition"
           >
             {interviewStarted ? 'Continue Interview' : 'Start Interview'}
